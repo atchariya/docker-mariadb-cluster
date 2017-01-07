@@ -1,15 +1,17 @@
-FROM mariadb:10.1
-MAINTAINER toughiq@gmail.com
+FROM toughiq/mariadb-cluster
+MAINTAINER atchariya@gmail.com
 
 RUN apt-get update && apt-get upgrade -y \
     && rm -rf /var/lib/apt/lists/*
-    
+
 COPY scripts/ /docker-entrypoint-initdb.d/.
 
 # we need to touch and chown config files, since we cant write as mysql user
 RUN touch /etc/mysql/conf.d/galera.cnf \
     && chown mysql.mysql /etc/mysql/conf.d/galera.cnf \
     && chown mysql.mysql /docker-entrypoint-initdb.d/*.sql
+
+COPY ./config/my.cnf /etc/mysql/conf.d/barracuda.cnf
 
 # we expose all Cluster related Ports
 # 3306: default MySQL/MariaDB listening port
@@ -22,9 +24,9 @@ EXPOSE 3306 4444 4567 4568
 ENV GALERA_USER=galera \
     GALERA_PASS=galerapass \
     MAXSCALE_USER=maxscale \
-    MAXSCALE_PASS=maxscalepass \ 
+    MAXSCALE_PASS=maxscalepass \
     CLUSTER_NAME=docker_cluster \
     MYSQL_ALLOW_EMPTY_PASSWORD=1
-    
+
 CMD ["mysqld"]
 
